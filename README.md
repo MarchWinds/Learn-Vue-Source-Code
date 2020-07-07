@@ -1,3 +1,5 @@
+注意：此项目为克隆 难凉热血大佬的 https://github.com/NLRX-WJC/Learn-Vue-Source-Code
+记录学习源码过程中的想法及思路
 <p align="center">
    <a href="https://nlrx-wjc.github.io/Learn-Vue-Source-Code/" target="_blank">
       <img src="http://ww1.sinaimg.cn/large/8afbb32dly1gaa3hvafn8j20k803edfm.jpg" alt="Learn-Vue-Source-Code">
@@ -91,29 +93,5 @@
 - 为`clone`下来的`Vue`源码添加尽可能详细的注释；
 - 做一份思维导图，以宏观角度总览源码；
 
-## 3. 鼓励写作
-
-江山父老能容我，不使人间造孽钱。您的赞赏，是对我写作最大的认可和鼓励。
-
-![](./pay.png)
-
-<details open=“open”>
- <summary>点击收起/打开赞赏名单</summary>
- <br/>
-
-### 赞赏名单:art:
-| 昵称 |  赞赏时间  | 赞赏方式 | 赞赏金额 | 备注 |
-| :--: | :--------: | :------: | :------: | :--: |
-| *心  | 2019-11-29 |  支付宝  | ￥10.00  |  -   |
-| 默默 | 2019-12-13 |   微信   | ￥88.88  |  -   |
-| 2*$  | 2019-12-20 |   微信   | ￥10.00  |  -   |
-| *俊  | 2019-12-21 |   微信   | ￥ 5.00  |  -   |
-
-感谢以上朋友，十分感谢！！！ :pray: :pray: :pray:
-</details>
-
-# 4. 那就开始吧
-
-写作是一件十分枯燥的事情，如果我写的这些文字对你有些许帮助的话，还请赏个star哈~~
 
 
