@@ -39,7 +39,7 @@ export class Observer {
   dep: Dep;
   vmCount: number; // number of vms that have this object as root $data
 
-  constructor (value: any) {
+  constructor(value: any) {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
@@ -114,6 +114,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     return
   }
   let ob: Observer | void
+  //如果存在__ob__属性，说明该对象已经observe过
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
@@ -125,6 +126,9 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
   ) {
     ob = new Observer(value)
   }
+  // 如果是RootData，即咱们在新建Vue实例时，传到data里的值，只有RootData在每次observe的时候，会进行计数。
+  // vmCount是用来记录此Vue实例被使用的次数的，
+  // 比如，我们有一个组件logo，页面头部和尾部都需要展示logo，都用了这个组件，那么这个时候vmCount就会计数，值为2
   if (asRootData && ob) {
     ob.vmCount++
   }
@@ -154,17 +158,22 @@ export function defineReactive (
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
-
+  // 是否需要深度响应，不需要的话就不去调用observe去递归响应
   let childOb = !shallow && observe(val)
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
+      //获取属性的值，如果这个属性在转化之前定义过getter，那么调用该getter得到value的值，否则直接返回val。
       const value = getter ? getter.call(obj) : val
+      // 注意这里，这里是Dep收集订阅者的过程，只有在Dep.target存在的情况下才进行这个操作，在Watcher收集依赖的时候才会设置Dep.target，所以Watcher收集依赖的时机就是Dep收集订阅者的时机。
+      // 调用get的情况有两种，一是Watcher收集依赖的时候（此时Dep收集订阅者），二是模板或js代码里用到这个值，这个时候是不需要收集依赖的，只要返回值就可以了。
       if (Dep.target) {
         dep.depend()
+        //注意这里,不仅这个属性需要添加到依赖列表中，如果这个属性对应的值是对象或数组，那么这个属性对应的值也需要添加到依赖列表中，原因后面详细解释
         if (childOb) {
           childOb.dep.depend()
+          //如果是数组，那么数组中的每个值都添加到依赖列表里
           if (Array.isArray(value)) {
             dependArray(value)
           }
@@ -173,8 +182,10 @@ export function defineReactive (
       return value
     },
     set: function reactiveSetter (newVal) {
+      // 拿到旧值，原来有getter调用原来的getter，没有就把传入的val当做旧值
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
+      // 判断是否相等或者都是NaN
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
@@ -182,14 +193,18 @@ export function defineReactive (
       if (process.env.NODE_ENV !== 'production' && customSetter) {
         customSetter()
       }
+      // 有getter但是没有setter的直接return 不设置值
       // #7981: for accessor properties without setter
       if (getter && !setter) return
+      // 如果原先的setter存在则调用赋值，不存在getter也不存在setter则直接改变val的值（不明白使用场景）
       if (setter) {
         setter.call(obj, newVal)
       } else {
         val = newVal
       }
+      // 当为属性设置了新的值，是需要observe的
       childOb = !shallow && observe(newVal)
+      // 通知更新数据
       dep.notify()
     }
   })
@@ -202,10 +217,10 @@ export function defineReactive (
  * 在对象上设置属性。添加新属性，如果该属性尚不存在，则触发更改通知。
  * 如：
  * let obj={}
- * vm.$set(obj，'nane'，难凉热血)
+ * vm.$set(obj，'nane'，"小明")
  */
-export function set(target: Array<any> | Object, key: any, val: any): any {
-  // 判断target是否为undefined、nul1或原始类型
+export function set (target: Array<any> | Object, key: any, val: any): any {
+  // 判断target是否为undefined、null或原始类型
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
@@ -213,7 +228,7 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
   }
   /**
    * 判断targrt是否为数组并且key是否是一个有效的索引,如果是，
-   * 则取target.1ength与key两者的最大值赋给target.length
+   * 则取target.length与key两者的最大值赋给target.length
    * 然后通过数组的splice方法将val添加到key索引处
    */
   if (Array.isArray(target) && isValidArrayIndex(key)) {
@@ -299,6 +314,8 @@ export function del (target: Array<any> | Object, key: any) {
 function dependArray (value: Array<any>) {
   for (let e, i = 0, l = value.length; i < l; i++) {
     e = value[i]
+    // 在调用这个函数的时候，数组已经被observe过了，且会递归observe。(看上面defineReactive函数里的这行代码：var childOb = observe(val);)
+    // 所以正常情况下都会存在__ob__属性，这个时候就可以调用dep添加依赖了。
     e && e.__ob__ && e.__ob__.dep.depend()
     if (Array.isArray(e)) {
       dependArray(e)
