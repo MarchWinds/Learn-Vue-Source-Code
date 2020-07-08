@@ -406,7 +406,7 @@ export function createPatchFunction (backend) {
     let oldEndIdx = oldCh.length - 1   // oldChildren结束索引
     let oldStartVnode = oldCh[0]        // oldChildren中所有未处理节点中的第一个
     let oldEndVnode = oldCh[oldEndIdx]   // oldChildren中所有未处理节点中的最后一个
-    
+
     let newStartIdx = 0               // newChildren开始索引
     let newEndIdx = newCh.length - 1   // newChildren结束索引
     let newStartVnode = newCh[0]        // newChildren中所有未处理节点中的第一个
@@ -439,6 +439,7 @@ export function createPatchFunction (backend) {
         newEndVnode = newCh[--newEndIdx]
       } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
         // 如果新后与旧前节点相同，先把两个节点进行patch更新，然后把旧前节点移动到oldChilren中所有未处理节点之后
+        // 需要注意的是，以下的移动节点都是移动真实dom，实际oldCh 即旧VNode是没有发生变化的
         patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx)
         canMove && nodeOps.insertBefore(parentElm, oldStartVnode.elm, nodeOps.nextSibling(oldEndVnode.elm))
         oldStartVnode = oldCh[++oldStartIdx]
@@ -467,7 +468,7 @@ export function createPatchFunction (backend) {
             // 调用patchVnode更新节点
             patchVnode(vnodeToMove, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
             oldCh[idxInOld] = undefined
-            // canmove表示是否需要移动节点，如果为true表示需要移动，则移动节点，如果为false则不用移动
+            // canmove表示是否需要移动节点，如果为true表示需要移动，则移动节点到oldChilren中所有未处理节点之前，如果为false则不用移动
             canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
           } else {
             // same key but different element. treat as new element
@@ -533,7 +534,7 @@ export function createPatchFunction (backend) {
     if (oldVnode === vnode) {
       return
     }
-    
+
     if (isDef(vnode.elm) && isDef(ownerArray)) {
       // clone reused vnode
       vnode = ownerArray[index] = cloneVNode(vnode)
@@ -600,7 +601,7 @@ export function createPatchFunction (backend) {
       else if (isDef(oldCh)) {
         // 清空DOM中的子节点
         removeVnodes(elm, oldCh, 0, oldCh.length - 1)
-      } 
+      }
       // 若vnode和oldnode都没有子节点，但是oldnode中有文本
       else if (isDef(oldVnode.text)) {
         // 清空oldnode文本
